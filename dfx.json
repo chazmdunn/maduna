@@ -1,0 +1,27 @@
+{
+  "canisters": {
+    "bubbles_backend": {
+      "candid": "src/bubbles_backend/bubbles_backend.did",
+      "package": "bubbles_backend",
+      "type": "rust"
+    },
+    "bubbles_frontend": {
+      "dependencies": [
+        "bubbles_backend"
+      ],
+      "source": [
+        "src/bubbles_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "bubbles_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}

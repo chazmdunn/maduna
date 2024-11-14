@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "src/bubbles_backend"
+]
+resolver = "2"
