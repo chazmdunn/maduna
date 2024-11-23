@@ -1,3 +1,4 @@
+import BouncingBubble from "./BouncingBubble";
 import Bubbles from "./Bubbles";
 
 
@@ -5,7 +6,8 @@ function App() {
 
 
   return (
-    <div className="bg-gray-800 min-h-screen text-white">
+    <div className="">
+      {/* <BouncingBubble /> */}
       <Bubbles />
     </div>
   );

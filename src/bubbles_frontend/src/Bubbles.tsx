@@ -22,35 +22,39 @@ const Sphere: React.FC<SphereProps> = ({ image, scale, text, vec = new THREE.Vec
     ]);
     const [position] = useState(new THREE.Vector3());
     const [dragging, setDragging] = useState<THREE.Vector3 | boolean>(false);
+    
     useFrame((state, delta) => {
-        const viewport = state.viewport;
-        const translation = api.current.translation(); // Get the current position of the bubble
+        const viewport = state.viewport; // Get viewport dimensions
+        const translation = api.current.translation(); // Current bubble position
+        const radius = scale / 2; // Bubble radius (half of its scale)
     
-        // Apply boundary checks and bounce on X-axis
-        if (Math.abs(translation.x) >= viewport.width / 2) {
-            const bounceDirection = translation.x > 0 ? -1 : 1;
-            api.current.applyImpulse(new THREE.Vector3(bounceDirection * scale * 10, 0, 0));
+        // Check horizontal bounds (X-axis)
+        if (translation.x + radius >= viewport.width / 2 || translation.x - radius <= -viewport.width / 2) {
+            // Reverse direction along X-axis
+            const bounceX = translation.x > 0 ? -1 : 1; // Determine direction
+            api.current.applyImpulse(new THREE.Vector3(bounceX * scale * 10, 0, 0));
         }
     
-        // Apply boundary checks and bounce on Y-axis
-        if (Math.abs(translation.y) >= viewport.height / 2) {
-            const bounceDirection = translation.y > 0 ? -1 : 1;
-            api.current.applyImpulse(new THREE.Vector3(0, bounceDirection * scale * 10, 0));
+        // Check vertical bounds (Y-axis)
+        if (translation.y + radius >= viewport.height / 2 || translation.y - radius <= -viewport.height / 2) {
+            // Reverse direction along Y-axis
+            const bounceY = translation.y > 0 ? -1 : 1; // Determine direction
+            api.current.applyImpulse(new THREE.Vector3(0, bounceY * scale * 10, 0));
         }
     
-        // Your original impulse logic for movement towards the center (dragging or general behavior)
+        // Keep applying drag toward the center when not dragging
         if (!dragging) {
             api.current.applyImpulse(
                 vec.copy(api.current.translation()).negate().multiplyScalar(scale * 0.1)
             );
         }
     
-        // Existing easing and position update logic (to smoothly update the position)
+        // Smoothly update position for dragging
         easing.damp3(
             position,
             [
-                (state.pointer.x * state.viewport.width) / 2 - (dragging instanceof THREE.Vector3 ? dragging.x : 0),
-                (state.pointer.y * state.viewport.height) / 2 - (dragging instanceof THREE.Vector3 ? dragging.y : 0),
+                (state.pointer.x * viewport.width) / 2 - (dragging instanceof THREE.Vector3 ? dragging.x : 0),
+                (state.pointer.y * viewport.height) / 2 - (dragging instanceof THREE.Vector3 ? dragging.y : 0),
                 0,
             ],
             0.2,
@@ -58,8 +62,10 @@ const Sphere: React.FC<SphereProps> = ({ image, scale, text, vec = new THREE.Vec
         );
     
         // Apply the calculated position to the rigid body
+
         api.current?.setNextKinematicTranslation(position);
     });
+    
     
     
 
