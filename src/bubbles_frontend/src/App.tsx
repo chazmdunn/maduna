@@ -6,7 +6,7 @@ function App() {
 
 
   return (
-    <div className="">
+    <div className="bg-gray-500">
       {/* <BouncingBubble /> */}
       <Bubbles />
     </div>

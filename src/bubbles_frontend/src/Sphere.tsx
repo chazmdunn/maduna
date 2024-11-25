@@ -1,19 +1,20 @@
 import * as THREE from 'three';
 import React, { useRef, useState } from 'react';
-import {  useFrame } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { Float, Text, Image } from '@react-three/drei';
 import { RigidBody, BallCollider } from '@react-three/rapier';
 import { easing } from 'maath';
 
 interface SphereProps {
-    image: string;
+    logo: string;
     scale: number;
-    text: string;
+    name: string;
+    priceChange: number;
     vec?: THREE.Vector3;
     [key: string]: any;
 }
 
-const Sphere: React.FC<SphereProps> = ({ image, scale, text, vec = new THREE.Vector3(), ...props }) => {
+const Sphere: React.FC<SphereProps> = ({ logo, scale, name, priceChange, vec = new THREE.Vector3(), ...props }) => {
     const api = useRef<any>(null);
     const [initialPos] = useState<[number, number, number]>([
         THREE.MathUtils.randFloatSpread(30),
@@ -28,26 +29,16 @@ const Sphere: React.FC<SphereProps> = ({ image, scale, text, vec = new THREE.Vec
         const translation = api.current.translation(); // Current bubble position
         const currentVelocity = api.current.linvel(); // Get current velocity
         const radius = scale / 2; // Bubble radius (half of its scale)
-        
+
         // Check horizontal bounds (X-axis)
         if (translation.x + radius >= viewport.width / 2 || translation.x - radius <= -viewport.width / 2) {
             const bounceX = translation.x > 0 ? -1 : 1; // Determine bounce direction
-            // console.log(
-            //     `%cHit horizontal edge!`,
-            //     'color: red; font-weight: bold;',
-            //     `Position: ${translation.x}, Velocity: ${currentVelocity.x}`
-            // );
             api.current.setLinvel(new THREE.Vector3(bounceX * Math.abs(currentVelocity.x), currentVelocity.y, 0));
         }
 
         // Check vertical bounds (Y-axis)
         if (translation.y + radius >= viewport.height / 2 || translation.y - radius <= -viewport.height / 2) {
             const bounceY = translation.y > 0 ? -1 : 1; // Determine bounce direction
-            // console.log(
-            //     `%cHit vertical edge!`,
-            //     'color: blue; font-weight: bold;',
-            //     `Position: ${translation.y}, Velocity: ${currentVelocity.y}`
-            // );
             api.current.setLinvel(new THREE.Vector3(currentVelocity.x, bounceY * Math.abs(currentVelocity.y), 0));
         }
 
@@ -99,25 +90,54 @@ const Sphere: React.FC<SphereProps> = ({ image, scale, text, vec = new THREE.Vec
                         setDragging(false);
                     }}
                 >
+                    {/* Circular Bubble */}
                     <circleGeometry args={[1, 64]} />
-                    <meshBasicMaterial {...props} />
-                    {text && (
+                    <meshBasicMaterial color="skyblue" {...props} />
+
+                    {/* Logo */}
+                    <Image
+                        position={[0, 0.6, 0.02]}
+                        scale={0.4}
+                        transparent
+                        toneMapped={false}
+                        url={logo}
+                    />
+
+                    {/* Name */}
+                    {name && (
                         <Text
                             font="Inter-Regular.woff"
                             letterSpacing={-0.05}
-                            position={[0, 0, 0.01]}
-                            fontSize={0.425}
+                            position={[0, 0.2, 0.03]}
+                            fontSize={0.25}
+                            color="white"
+                            anchorX="center"
+                            anchorY="middle"
                             material-toneMapped={false}
                         >
-                            {text}
+                            {name}
                         </Text>
                     )}
+
+                    {/* Price Change */}
+                    <Text
+                        font="Inter-Regular.woff"
+                        color={priceChange >= 0 ? 'green' : 'red'}
+                        position={[0, -0.3, 0.03]}
+                        fontSize={0.2}
+                        anchorX="center"
+                        anchorY="middle"
+                        material-toneMapped={false}
+                    >
+                        {priceChange.toFixed(2)}%
+                    </Text>
                 </mesh>
-                <mesh scale={0.95} position={[0, 0, 0.01]}>
-                    <ringGeometry args={[0.9, 1, 64]} />
+
+                {/* Outer Ring */}
+                <mesh scale={1.05} position={[0, 0, 0.01]}>
+                    <ringGeometry args={[0.95, 1, 64]} />
                     <meshBasicMaterial color={dragging ? 'orange' : 'black'} />
                 </mesh>
-                <Image position={[0, 0.45, 0.01]} scale={0.5} transparent toneMapped={false} url={image} />
             </Float>
         </RigidBody>
     );
