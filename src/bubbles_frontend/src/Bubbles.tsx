@@ -134,10 +134,10 @@ const Bubbles: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen w-screen bg-gray-400">
+    <div className="flex flex-col items-center justify-center h-screen w-screen bg-blue-600">
       {/* Criteria Selection Buttons */}
       <div className="flex justify-center mb-4">
-        {["priceChangeUSD", "totalVolume", "volume1d", "volume7days"].map((criteriaOption) => (
+        {["priceChangeUSD", "totalVolume", "volume1d", "volume7days", "Trends"].map((criteriaOption) => (
           <button
             key={criteriaOption}
             onClick={() => setCriterea(criteriaOption)}

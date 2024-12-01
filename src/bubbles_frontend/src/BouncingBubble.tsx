@@ -18,7 +18,7 @@ const BouncingBubble: React.FC = () => {
     return () => window.removeEventListener("resize", updateWindowSize);
   }, []);
 
-  // Animation logic
+  // Animation logi
   const BubbleAnimation: React.FC = () => {
     const bubbleVelocity = useRef({ x: 0.01, y: 0.01 });
     const bubbleRadius = 0.5; // Radius of the sphere (matches `sphereGeometry` args)
