@@ -29,41 +29,30 @@ const Sphere: React.FC<SphereProps> = ({ logo, scale, name, priceChange, vec = n
         const translation = api.current.translation(); // Current bubble position
         const currentVelocity = api.current.linvel(); // Get current velocity
         const radius = scale / 2; // Bubble radius (half of its scale)
-
+      
         // Check horizontal bounds (X-axis)
         if (translation.x + radius >= viewport.width / 2 || translation.x - radius <= -viewport.width / 2) {
-            const bounceX = translation.x > 0 ? -1 : 1; // Determine bounce direction
-            api.current.setLinvel(new THREE.Vector3(bounceX * Math.abs(currentVelocity.x), currentVelocity.y, 0));
+          const bounceX = translation.x > 0 ? -1 : 1; // Determine bounce direction
+          api.current.setLinvel(new THREE.Vector3(bounceX * Math.abs(currentVelocity.x), currentVelocity.y, 0));
         }
-
+      
         // Check vertical bounds (Y-axis)
         if (translation.y + radius >= viewport.height / 2 || translation.y - radius <= -viewport.height / 2) {
-            const bounceY = translation.y > 0 ? -1 : 1; // Determine bounce direction
-            api.current.setLinvel(new THREE.Vector3(currentVelocity.x, bounceY * Math.abs(currentVelocity.y), 0));
+          const bounceY = translation.y > 0 ? -1 : 1; // Determine bounce direction
+          api.current.setLinvel(new THREE.Vector3(currentVelocity.x, bounceY * Math.abs(currentVelocity.y), 0));
         }
-
-        // Keep applying drag toward the center when not dragging
+      
+        // Apply a random wandering effect when not dragging
         if (!dragging) {
-            api.current.applyImpulse(
-                vec.copy(api.current.translation()).negate().multiplyScalar(scale * 0.1)
-            );
+          const randomImpulse = new THREE.Vector3(
+            (Math.random() - 0.5) * 0.02, // Small random movement on X
+            (Math.random() - 0.5) * 0.02, // Small random movement on Y
+            0 // No movement on Z
+          );
+          api.current.applyImpulse(randomImpulse);
         }
-
-        // Smoothly update position for dragging
-        easing.damp3(
-            position,
-            [
-                (state.pointer.x * viewport.width) / 2 - (dragging instanceof THREE.Vector3 ? dragging.x : 0),
-                (state.pointer.y * viewport.height) / 2 - (dragging instanceof THREE.Vector3 ? dragging.y : 0),
-                0,
-            ],
-            0.2,
-            delta
-        );
-
-        // Apply the calculated position to the rigid body
-        api.current?.setNextKinematicTranslation(position);
-    });
+      });
+    
 
     return (
         <RigidBody
@@ -92,7 +81,7 @@ const Sphere: React.FC<SphereProps> = ({ logo, scale, name, priceChange, vec = n
                 >
                     {/* Circular Bubble */}
                     <circleGeometry args={[1, 64]} />
-                    <meshBasicMaterial color="skyblue" {...props} />
+                    <meshBasicMaterial color="#38BDF8" {...props} />
 
                     {/* Logo */}
                     <Image
@@ -110,7 +99,7 @@ const Sphere: React.FC<SphereProps> = ({ logo, scale, name, priceChange, vec = n
                             letterSpacing={-0.05}
                             position={[0, 0.2, 0.03]}
                             fontSize={0.25}
-                            color="white"
+                            color="#F3F4F6"
                             anchorX="center"
                             anchorY="middle"
                             material-toneMapped={false}
@@ -122,9 +111,9 @@ const Sphere: React.FC<SphereProps> = ({ logo, scale, name, priceChange, vec = n
                     {/* Price Change */}
                     <Text
                         font="Inter-Regular.woff"
-                        color={priceChange >= 0 ? 'green' : 'red'}
+                        color={priceChange >= 0 ? '#22C55E' : '#EF4444'} // Bright green for positive, soft red for negative
                         position={[0, -0.3, 0.03]}
-                        fontSize={0.2}
+                        fontSize={0.4}
                         anchorX="center"
                         anchorY="middle"
                         material-toneMapped={false}
@@ -136,7 +125,9 @@ const Sphere: React.FC<SphereProps> = ({ logo, scale, name, priceChange, vec = n
                 {/* Outer Ring */}
                 <mesh scale={1.05} position={[0, 0, 0.01]}>
                     <ringGeometry args={[0.95, 1, 64]} />
-                    <meshBasicMaterial color={dragging ? 'orange' : 'black'} />
+                    <meshBasicMaterial
+                        color={dragging ? '#F97316' : '#14B8A6'} // Orange when dragging, teal otherwise
+                    />
                 </mesh>
             </Float>
         </RigidBody>
