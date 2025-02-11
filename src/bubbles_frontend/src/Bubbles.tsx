@@ -15,7 +15,11 @@ const Bubbles: React.FC = () => {
   const { tokens } = useAuth();
   const [criteria, setCriteria] = useState<string>("priceChangeUSD");
   const [rankedTokens, setRankedTokens] = useState<Token[] | null>(null);
-  const [data, setData] = useState<SphereData[] | null>(null);
+  const [priceChangeData, setPriceChangeData] = useState<SphereData[] | null>(null);
+  const [totalVolumeData, setTotalVolumeData] = useState<SphereData[] | null>(null);
+  const [volume1dData, setVolume1dData] = useState<SphereData[] | null>(null);
+  const [volume7daysData, setVolume7daysData] = useState<SphereData[] | null>(null);
+
   const [snses, setSnses] = useState<any[] | null>(null);
   const [trendsData, setTrendsData] = useState<TrendsData[] | null>(null);
 
@@ -30,25 +34,12 @@ const Bubbles: React.FC = () => {
     })();
   }, []);
 
-
-  console.log("Tags Data: ", trendsData);
-
   useEffect(() => {
     if (tokens) {
-      //   getTokenData();
       filterAndRankTokens(tokens);
     }
   }, [tokens]);
 
-  //   const getTokenData = async () => {
-  //     let token = tokens.find((x) => x.symbol == "CHAT");
-  //     let data = await icpswap_historic_prices({
-  //       token: token.address, // Take pool id from the table above
-  //       start: 0,
-  //       len: 365 * 3, // in days
-  //     });
-  //     console.log("Data: ", data);
-  //   };
 
   const filterAndRankTokens = (tokens: Token[]) => {
     const filteredTokens = tokens.filter(
@@ -107,11 +98,10 @@ const Bubbles: React.FC = () => {
           case "volume7days":
             return token.volumeUSD7d;
           default:
-            return 0; // Fallback for unexpected criteria
+            return 0;
         }
       })();
 
-      // Normalize scale between 1 and 5
       const scale = 1 + ((value - minValue) / range) * 4;
 
       const logo = getSNSTokenLogo(token.symbol, snses) || "pmndrs.png";
@@ -125,8 +115,50 @@ const Bubbles: React.FC = () => {
       };
     });
 
-    setData(data);
+    switch (criteria) {
+      case "priceChangeUSD":
+        await clearOtherData("priceChangeUSD");
+        setPriceChangeData(data);
+        break;
+      case "totalVolume":
+        await clearOtherData("totalVolume");
+        setTotalVolumeData(data);
+        break;
+      case "volume1d":
+        await clearOtherData("volume1d");
+        setVolume1dData(data);
+        break;
+      case "volume7days":
+        await clearOtherData("volume7days");
+        setVolume7daysData(data);
+        break;
+      default:
+        break;
+    }
   };
+
+  const clearOtherData = async (criteria: string) => {
+    if (criteria === "priceChangeUSD") {
+      setVolume1dData(null);
+      setTotalVolumeData(null);
+      setVolume7daysData(null);
+    }
+    if (criteria === "totalVolume") {
+      setPriceChangeData(null);
+      setVolume1dData(null);
+      setVolume7daysData(null);
+    }
+    if (criteria === "volume1d") {
+      setPriceChangeData(null);
+      setTotalVolumeData(null);
+      setVolume7daysData(null);
+    }
+    if (criteria === "volume7days") {
+      setPriceChangeData(null);
+      setTotalVolumeData(null);
+      setVolume1dData(null);
+    }
+  }
 
   const getSNSTokenLogo = (symbol: string, snsCanistersData: any): string | null => {
     if (!snsCanistersData) return null;
@@ -145,21 +177,19 @@ const Bubbles: React.FC = () => {
   };
 
   const handleCriteriaChange = (criteria: string) => {
-    //Fix the disoriantetaion of the bubbles on criteria change
     setCriteria(criteria);
   }
 
   return (
     <div className="flex flex-col items-center justify-center h-screen w-screen bg-gradient-to-br from-[#0F172A] to-[#1E40AF] min-h-screen">
-      {/* Criteria Selection Buttons */}
       <div className="flex justify-center mb-4">
         {["priceChangeUSD", "totalVolume", "volume1d", "volume7days", "Trends"].map((criteriaOption) => (
           <button
             key={criteriaOption}
             onClick={() => handleCriteriaChange(criteriaOption)}
             className={`px-4 py-2 mx-2 rounded-md text-white font-semibold transition-all ${criteria === criteriaOption
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-gray-400 hover:bg-gray-500"
+              ? "bg-blue-600 hover:bg-blue-700"
+              : "bg-gray-400 hover:bg-gray-500"
               }`}
           >
             {criteriaOption.replace(/([A-Z])/g, " $1").trim()}
@@ -167,17 +197,29 @@ const Bubbles: React.FC = () => {
         ))}
       </div>
 
-      {/* 3D Canvas */}
       <Canvas
         orthographic
         camera={{ position: [0, 0, 100], zoom: 30 }}
-        style={{ width: "100vw", height: "100vh" }}
+        style={{ width: "100%", height: "100%" }}
+        resize={{ debounce: 500 }}
       >
         <Physics interpolate timeStep={1 / 60} gravity={[0, 0, 0]}>
-          {/* Render based on Criteria */}
           {criteria === "Trends" && trendsData
-            ? trendsData.map((trend, i) => <TrendSphere key={i} {...trend} />)
-            : data?.map((props, i) => <Sphere key={i} {...props} />)}
+            && trendsData.map((trend, i) => <TrendSphere key={i} {...trend} />)
+          }
+          {criteria === "priceChangeUSD" && priceChangeData
+            && priceChangeData.map((sphere, i) => <Sphere key={i} {...sphere} />)
+          }
+          {criteria === "totalVolume" && totalVolumeData
+            && totalVolumeData.map((sphere, i) => <Sphere key={i} {...sphere} />)
+          }
+          {criteria === "volume1d" && volume1dData
+            && volume1dData.map((sphere, i) => <Sphere key={i} {...sphere} />)
+          }
+          {criteria === "volume7days" && volume7daysData
+            && volume7daysData.map((sphere, i) => <Sphere key={i} {...sphere} />)
+          }
+
         </Physics>
       </Canvas>
     </div>

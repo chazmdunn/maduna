@@ -3,7 +3,6 @@ import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float, Text, Image } from '@react-three/drei';
 import { RigidBody, BallCollider } from '@react-three/rapier';
-import { easing } from 'maath';
 
 interface SphereProps {
     logo: string;
@@ -21,38 +20,39 @@ const Sphere: React.FC<SphereProps> = ({ logo, scale, name, priceChange, vec = n
         THREE.MathUtils.randFloatSpread(30),
         0,
     ]);
-    const [position] = useState(new THREE.Vector3());
     const [dragging, setDragging] = useState<THREE.Vector3 | boolean>(false);
 
     useFrame((state, delta) => {
-        const viewport = state.viewport; // Get viewport dimensions
-        const translation = api.current.translation(); // Current bubble position
-        const currentVelocity = api.current.linvel(); // Get current velocity
-        const radius = scale / 2; // Bubble radius (half of its scale)
-      
-        // Check horizontal bounds (X-axis)
-        if (translation.x + radius >= viewport.width / 2 || translation.x - radius <= -viewport.width / 2) {
-          const bounceX = translation.x > 0 ? -1 : 1; // Determine bounce direction
-          api.current.setLinvel(new THREE.Vector3(bounceX * Math.abs(currentVelocity.x), currentVelocity.y, 0));
+        const viewport = state.viewport;
+        const translation = api.current.translation();
+        const currentVelocity = api.current.linvel();
+        const radius = scale / 2;
+
+        if (translation.x + radius > viewport.width / 2) {
+            api.current.setTranslation(new THREE.Vector3(viewport.width / 2 - radius, translation.y, 0));
+            api.current.setLinvel(new THREE.Vector3(-Math.abs(currentVelocity.x), currentVelocity.y, 0));
+        } else if (translation.x - radius < -viewport.width / 2) {
+            api.current.setTranslation(new THREE.Vector3(-viewport.width / 2 + radius, translation.y, 0));
+            api.current.setLinvel(new THREE.Vector3(Math.abs(currentVelocity.x), currentVelocity.y, 0));
         }
-      
-        // Check vertical bounds (Y-axis)
-        if (translation.y + radius >= viewport.height / 2 || translation.y - radius <= -viewport.height / 2) {
-          const bounceY = translation.y > 0 ? -1 : 1; // Determine bounce direction
-          api.current.setLinvel(new THREE.Vector3(currentVelocity.x, bounceY * Math.abs(currentVelocity.y), 0));
+
+        if (translation.y + radius > viewport.height / 2) {
+            api.current.setTranslation(new THREE.Vector3(translation.x, viewport.height / 2 - radius, 0));
+            api.current.setLinvel(new THREE.Vector3(currentVelocity.x, -Math.abs(currentVelocity.y), 0));
+        } else if (translation.y - radius < -viewport.height / 2) {
+            api.current.setTranslation(new THREE.Vector3(translation.x, -viewport.height / 2 + radius, 0));
+            api.current.setLinvel(new THREE.Vector3(currentVelocity.x, Math.abs(currentVelocity.y), 0));
         }
-      
-        // Apply a random wandering effect when not dragging
+
         if (!dragging) {
-          const randomImpulse = new THREE.Vector3(
-            (Math.random() - 0.5) * 0.02, // Small random movement on X
-            (Math.random() - 0.5) * 0.02, // Small random movement on Y
-            0 // No movement on Z
-          );
-          api.current.applyImpulse(randomImpulse);
+            const randomImpulse = new THREE.Vector3(
+                (Math.random() - 0.5) * 0.02,
+                (Math.random() - 0.5) * 0.02,
+                0
+            );
+            api.current.applyImpulse(randomImpulse);
         }
-      });
-    
+    });
 
     return (
         <RigidBody
@@ -79,20 +79,9 @@ const Sphere: React.FC<SphereProps> = ({ logo, scale, name, priceChange, vec = n
                         setDragging(false);
                     }}
                 >
-                    {/* Circular Bubble */}
                     <circleGeometry args={[1, 64]} />
                     <meshBasicMaterial color="#38BDF8" {...props} />
-
-                    {/* Logo */}
-                    <Image
-                        position={[0, 0.6, 0.02]}
-                        scale={0.4}
-                        transparent
-                        toneMapped={false}
-                        url={logo}
-                    />
-
-                    {/* Name */}
+                    <Image position={[0, 0.6, 0.02]} scale={0.4} transparent toneMapped={false} url={logo} />
                     {name && (
                         <Text
                             font="Inter-Regular.woff"
@@ -107,11 +96,9 @@ const Sphere: React.FC<SphereProps> = ({ logo, scale, name, priceChange, vec = n
                             {name}
                         </Text>
                     )}
-
-                    {/* Price Change */}
                     <Text
                         font="Inter-Regular.woff"
-                        color={priceChange >= 0 ? '#22C55E' : '#EF4444'} // Bright green for positive, soft red for negative
+                        color={priceChange >= 0 ? '#22C55E' : '#EF4444'}
                         position={[0, -0.3, 0.03]}
                         fontSize={0.4}
                         anchorX="center"
@@ -121,13 +108,9 @@ const Sphere: React.FC<SphereProps> = ({ logo, scale, name, priceChange, vec = n
                         {priceChange.toFixed(2)}%
                     </Text>
                 </mesh>
-
-                {/* Outer Ring */}
                 <mesh scale={1.05} position={[0, 0, 0.01]}>
                     <ringGeometry args={[0.95, 1, 64]} />
-                    <meshBasicMaterial
-                        color={dragging ? '#F97316' : '#14B8A6'} // Orange when dragging, teal otherwise
-                    />
+                    <meshBasicMaterial color={dragging ? '#F97316' : '#14B8A6'} />
                 </mesh>
             </Float>
         </RigidBody>

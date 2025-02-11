@@ -10,7 +10,7 @@ import {
     AuthClientCreateOptions,
     AuthClientLoginOptions,
 } from "@dfinity/auth-client";
-import { canisterId as iiCanId } from "../../../declarations/internet_identity";
+// import { canisterId as iiCanId } from "../../../declarations/internet_identity";
 import { Actor, ActorSubclass, HttpAgent, Identity } from "@dfinity/agent";
 // @ts-ignore
 import icblast from '@infu/icblast';
@@ -47,10 +47,7 @@ const defaultOptions: DefaultOptions = {
         },
     },
     loginOptions: {
-        identityProvider:
-            network === "ic"
-                ? "https://identity.ic0.app/#authorize"
-                : `http://${iiCanId}.localhost:4943`,
+        identityProvider:"https://identity.ic0.app/#authorize"
     },
 };
 

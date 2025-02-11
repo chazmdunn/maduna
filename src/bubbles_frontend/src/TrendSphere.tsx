@@ -24,29 +24,28 @@ const TrendSphere: React.FC<TrendSphereProps> = ({ name, scale, color, vec = new
   const [dragging, setDragging] = useState<THREE.Vector3 | boolean>(false);
 
   useFrame((state, delta) => {
-    const viewport = state.viewport; // Get viewport dimensions
-    const translation = api.current.translation(); // Current bubble position
-    const currentVelocity = api.current.linvel(); // Get current velocity
-    const radius = scale / 2; // Bubble radius (half of its scale)
+    const viewport = state.viewport; 
+    const translation = api.current.translation();
+    const currentVelocity = api.current.linvel();
+    const radius = scale / 2; 
   
-    // Check horizontal bounds (X-axis)
+   
     if (translation.x + radius >= viewport.width / 2 || translation.x - radius <= -viewport.width / 2) {
-      const bounceX = translation.x > 0 ? -1 : 1; // Determine bounce direction
+      const bounceX = translation.x > 0 ? -1 : 1; 
       api.current.setLinvel(new THREE.Vector3(bounceX * Math.abs(currentVelocity.x), currentVelocity.y, 0));
     }
-  
-    // Check vertical bounds (Y-axis)
+
     if (translation.y + radius >= viewport.height / 2 || translation.y - radius <= -viewport.height / 2) {
-      const bounceY = translation.y > 0 ? -1 : 1; // Determine bounce direction
+      const bounceY = translation.y > 0 ? -1 : 1; 
       api.current.setLinvel(new THREE.Vector3(currentVelocity.x, bounceY * Math.abs(currentVelocity.y), 0));
     }
   
-    // Apply a random wandering effect when not dragging
+    
     if (!dragging) {
       const randomImpulse = new THREE.Vector3(
         (Math.random() - 0.5) * 0.1, 
         (Math.random() - 0.5) * 0.1,
-        0 // No movement on Z
+        0
       );
       api.current.applyImpulse(randomImpulse);
     }
@@ -77,11 +76,11 @@ const TrendSphere: React.FC<TrendSphereProps> = ({ name, scale, color, vec = new
             setDragging(false);
           }}
         >
-          {/* Circular Bubble */}
+         
           <circleGeometry args={[1, 64]} />
           <meshBasicMaterial color={color} />
 
-          {/* Name */}
+       
           {name && (
             <Text
               font="Inter-Regular.woff"
